@@ -24,7 +24,7 @@ fn main() {
     };
 
     match parser::parse_svm(&source) {
-        Some(program) => println!("{:?}", program),
+        Some(program) => println!("{}", program),
         None => println!("error")
     }
 }

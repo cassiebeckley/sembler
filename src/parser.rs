@@ -3,9 +3,24 @@ use std::str;
 use nom::*;
 use ast::*;
 
-named!(whitespace <Vec<char> >,
+named!(comment,
+    chain!(
+        char!(';')        ~
+        cc: is_not!("\n") ~
+        char!('\n')       ,
+
+        ||{cc}
+    )
+);
+
+named!(whitespace < Vec<()> >,
     many0!(
-        alt!(char!(' ') | char!('\n') | char!('\r'))
+        alt!(
+            value!((), char!(' '))            |
+            value!((), char!('\n'))           |
+            value!((), char!('\r'))           |
+            value!((), comment)
+        )
     )
 );
 
@@ -159,4 +174,11 @@ pub fn parse_svm(source: &[u8]) -> Option<Program> {
     IResult::Done(_, program) => Some(program),
     _ => None
   }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+    }
 }

@@ -9,7 +9,7 @@ raw {
     ENT 0x0
     IMM message
     PUSHARG
-    INT 0x2
+    INT 0x2      ; printstring()
     ADJ 0x1
     IMM 0x0
     RET
