@@ -1,8 +1,29 @@
 use std::fmt;
 
+pub trait ToBytes {
+  fn to_bytes(&self) -> Vec<Result<u8, &str>>;
+}
+
 #[derive(Debug)]
 pub enum Directive<'a> {
     Asciz(&'a str)
+}
+
+impl<'a> ToBytes for Directive<'a> {
+  fn to_bytes(&self) -> Vec<Result<u8, &str>> {
+    match *self {
+        Directive::Asciz(s) => {
+            let mut bytes: Vec<Result<u8, &str>> =
+              s.as_bytes()
+               .iter()
+               .map(|b| Ok(b.clone()))
+               .collect();
+
+            bytes.push(Ok(0));
+            bytes
+        }
+    }
+  }
 }
 
 impl<'a> fmt::Display for Directive<'a> {
@@ -138,6 +159,15 @@ pub enum Instruction<'a> {
     Opcode(Opcode<'a>)
 }
 
+impl<'a> ToBytes for Instruction<'a> {
+  fn to_bytes(&self) -> Vec<Result<u8, &str>> {
+    match *self {
+        Instruction::Directive(ref d) => d.to_bytes(),
+        Instruction::Opcode(ref o) => vec![Ok(0x37)],
+    }
+  }
+}
+
 impl<'a> fmt::Display for Instruction<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
@@ -147,11 +177,16 @@ impl<'a> fmt::Display for Instruction<'a> {
     }
 }
 
-// TODO: think about names
 #[derive(Debug)]
 pub struct Entry<'a> {
     pub label: Option<&'a str>,
     pub entry: Instruction<'a>
+}
+
+impl<'a> ToBytes for Entry<'a> {
+  fn to_bytes(&self) -> Vec<Result<u8, &str>> {
+    return self.entry.to_bytes();
+  }
 }
 
 impl<'a> fmt::Display for Entry<'a> {

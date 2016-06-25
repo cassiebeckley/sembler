@@ -3,6 +3,7 @@ extern crate nom;
 
 pub mod ast;
 pub mod parser;
+pub mod assemble;
 
 #[cfg(test)]
 mod tests {

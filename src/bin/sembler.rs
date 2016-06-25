@@ -6,6 +6,7 @@ use std::io::prelude::*;
 use std::path::Path;
 
 use sembler::parser;
+use sembler::assemble;
 
 fn main() {
     if env::args().count() < 2 {
@@ -23,8 +24,8 @@ fn main() {
         bytes
     };
 
-    match parser::parse_svm(&source) {
-        Some(program) => println!("{}", program),
-        None => println!("error")
-    }
+    let ast = parser::parse_svm(&source).unwrap();
+    println!("{}", ast);
+
+    assemble::assemble(&ast);
 }
