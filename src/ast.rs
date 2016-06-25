@@ -151,9 +151,9 @@ pub enum UnaryOp {
     Int
 }
 
-impl ToBytes for UnaryOp {
-    fn to_bytes(&self) -> Vec<Result<u8, &str>> {
-        let byte = match *self {
+impl UnaryOp {
+    fn to_byte(&self) -> u8 {
+        match *self {
             UnaryOp::Rel => 0x02,
             UnaryOp::Imm => 0x05,
             UnaryOp::Jmp => 0x06,
@@ -163,9 +163,7 @@ impl ToBytes for UnaryOp {
             UnaryOp::Ent => 0x0a,
             UnaryOp::Adj => 0x0b,
             UnaryOp::Int => 0x22
-        };
-
-        vec![Ok(byte)]
+        }
     }
 }
 
@@ -195,7 +193,14 @@ impl<'a> ToBytes for Opcode<'a> {
     fn to_bytes(&self) -> Vec<Result<u8, &str>> {
         match *self {
             Opcode::Nullary(ref n) => n.to_bytes(),
-            Opcode::Unary(ref u, _) => u.to_bytes(),
+            Opcode::Unary(ref u, Word::Literal(word)) => vec![
+                Ok(u.to_byte()),
+                Ok((word >> 24) as u8),
+                Ok((word >> 16) as u8),
+                Ok((word >> 8) as u8),
+                Ok(word as u8)
+            ],
+            Opcode::Unary(ref u, Word::Label(label)) => vec![Ok(u.to_byte()), Err(label)],
         }
     }
 }
