@@ -3,5 +3,8 @@ name = "sembler"
 version = "0.1.0"
 authors = ["David Beckley <beckl.ds@gmail.com>"]
 
+[lib]
+name = "sembler"
+
 [dependencies]
 nom = "1.2.3"

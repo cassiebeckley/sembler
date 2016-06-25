@@ -1,90 +1,11 @@
-use std::env;
-use std::fs::File;
-use std::io::prelude::*;
-use std::path::Path;
 use std::str;
 
 #[macro_use]
 extern crate nom;
 use nom::*;
 
-#[derive(Debug)]
-enum Directive<'a> {
-    Asciz(&'a str)
-}
-
-#[derive(Debug)]
-enum Word<'a> {
-    Literal(u32),
-    Label(&'a str)
-}
-
-#[derive(Debug)]
-enum NullaryOp {
-    Psh,
-    Pusharg,
-    Li,
-    Lc,
-    Si,
-    Sc,
-    Swap,
-    Pop,
-    Ret,
-
-    Eq,
-    Ne,
-    Lt,
-    Gt,
-    Le,
-    Ge,
-    Add,
-    Sub,
-    Mul,
-    Div,
-    Mod,
-    And,
-    Or,
-    Xor
-}
-
-#[derive(Debug)]
-enum UnaryOp {
-    Imm,
-    Rel,
-    Jmp,
-    Bz,
-    Bnz,
-    Ent,
-    Adj,
-    Jsr,
-
-    Int
-}
-
-#[derive(Debug)]
-enum Opcode<'a> {
-    Nullary(NullaryOp),
-    Unary(UnaryOp, Word<'a>)
-}
-
-#[derive(Debug)]
-enum Instruction<'a> {
-    Directive(Directive<'a>),
-    Opcode(Opcode<'a>)
-}
-
-// TODO: think about names
-#[derive(Debug)]
-struct Entry<'a> {
-    label: Option<&'a str>,
-    entry: Instruction<'a>
-}
-
-#[derive(Debug)]
-struct Program<'a> {
-    bss: Vec<Entry<'a>>,
-    raw: Vec<Entry<'a>>
-}
+pub mod ast;
+use ast::*;
 
 named!(whitespace <Vec<char> >,
     many0!(
@@ -237,21 +158,16 @@ named!(parser<&[u8], Program>,
     )
 );
 
-fn main() {
-    if env::args().count() < 2 {
-        panic!("Usage: sembler <source_file>");
+pub fn parse_svm(source: &[u8]) -> Option<Program> {
+  match parser(source) {
+    IResult::Done(_, program) => Some(program),
+    _ => None
+  }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
     }
-
-    let file = env::args().nth(1).unwrap();
-    let path = Path::new(&file);
-
-    let mut file = File::open(&path).unwrap();
-
-    let source = {
-        let mut bytes = vec!();
-        file.read_to_end(&mut bytes).unwrap();
-        bytes
-    };
-
-    println!("parsed: {:?}", parser(&source));
 }
