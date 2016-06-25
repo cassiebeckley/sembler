@@ -1,7 +1,7 @@
 use std::fmt;
 
 pub trait ToBytes {
-  fn to_bytes(&self) -> Vec<Result<u8, &str>>;
+    fn to_bytes(&self) -> Vec<Result<u8, &str>>;
 }
 
 #[derive(Debug)]
@@ -10,20 +10,20 @@ pub enum Directive<'a> {
 }
 
 impl<'a> ToBytes for Directive<'a> {
-  fn to_bytes(&self) -> Vec<Result<u8, &str>> {
-    match *self {
-        Directive::Asciz(s) => {
-            let mut bytes: Vec<Result<u8, &str>> =
-              s.as_bytes()
-               .iter()
-               .map(|b| Ok(b.clone()))
-               .collect();
+    fn to_bytes(&self) -> Vec<Result<u8, &str>> {
+        match *self {
+            Directive::Asciz(s) => {
+                let mut bytes: Vec<Result<u8, &str>> =
+                  s.as_bytes()
+                   .iter()
+                   .map(|b| Ok(b.clone()))
+                   .collect();
 
-            bytes.push(Ok(0));
-            bytes
+                bytes.push(Ok(0));
+                bytes
+            }
         }
     }
-  }
 }
 
 impl<'a> fmt::Display for Directive<'a> {
@@ -51,16 +51,17 @@ impl<'a> fmt::Display for Word<'a> {
 
 #[derive(Debug)]
 pub enum NullaryOp {
-    Psh,
-    Pusharg,
+    Swap,
+    Pop,
+    Ret,
     Li,
     Lc,
     Si,
     Sc,
-    Swap,
-    Pop,
-    Ret,
-
+    Psh,
+    Or,
+    Xor,
+    And,
     Eq,
     Ne,
     Lt,
@@ -72,68 +73,114 @@ pub enum NullaryOp {
     Mul,
     Div,
     Mod,
-    And,
-    Or,
-    Xor
+    Pusharg
+}
+
+impl ToBytes for NullaryOp {
+    fn to_bytes(&self) -> Vec<Result<u8, &str>> {
+        let byte = match *self {
+            NullaryOp::Swap    => 0x03,
+            NullaryOp::Pop     => 0x04,
+            NullaryOp::Ret     => 0x0c,
+            NullaryOp::Li      => 0x0d,
+            NullaryOp::Lc      => 0x0e,
+            NullaryOp::Si      => 0x0f,
+            NullaryOp::Sc      => 0x10,
+            NullaryOp::Psh     => 0x11,
+            NullaryOp::Or      => 0x12,
+            NullaryOp::Xor     => 0x13,
+            NullaryOp::And     => 0x14,
+            NullaryOp::Eq      => 0x15,
+            NullaryOp::Ne      => 0x16,
+            NullaryOp::Lt      => 0x17,
+            NullaryOp::Gt      => 0x18,
+            NullaryOp::Le      => 0x19,
+            NullaryOp::Ge      => 0x1a,
+            NullaryOp::Add     => 0x1d,
+            NullaryOp::Sub     => 0x1e,
+            NullaryOp::Mul     => 0x1f,
+            NullaryOp::Div     => 0x20,
+            NullaryOp::Mod     => 0x21,
+            NullaryOp::Pusharg => 0x34,
+        };
+
+        vec![Ok(byte)]
+    }
 }
 
 impl fmt::Display for NullaryOp {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            &NullaryOp::Psh => write!(f, "PSH"),
-            &NullaryOp::Pusharg => write!(f, "PUSHARG"),
-            &NullaryOp::Li => write!(f, "LI"),
-            &NullaryOp::Lc => write!(f, "LC"),
-            &NullaryOp::Si => write!(f, "SI"),
-            &NullaryOp::Sc => write!(f, "SC"),
-            &NullaryOp::Swap => write!(f, "SWAP"),
-            &NullaryOp::Pop => write!(f, "POP"),
-            &NullaryOp::Ret => write!(f, "RET"),
-            &NullaryOp::Eq => write!(f, "EQ"),
-            &NullaryOp::Ne => write!(f, "NE"),
-            &NullaryOp::Lt => write!(f, "LT"),
-            &NullaryOp::Gt => write!(f, "GT"),
-            &NullaryOp::Le => write!(f, "LE"),
-            &NullaryOp::Ge => write!(f, "GE"),
-            &NullaryOp::Add => write!(f, "ADD"),
-            &NullaryOp::Sub => write!(f, "SUB"),
-            &NullaryOp::Mul => write!(f, "MUL"),
-            &NullaryOp::Div => write!(f, "DIV"),
-            &NullaryOp::Mod => write!(f, "MOD"),
-            &NullaryOp::And => write!(f, "AND"),
-            &NullaryOp::Or => write!(f, "OR"),
-            &NullaryOp::Xor => write!(f, "XOR")
+        match *self {
+            NullaryOp::Swap    => write!(f, "SWAP"),
+            NullaryOp::Pop     => write!(f, "POP"),
+            NullaryOp::Ret     => write!(f, "RET"),
+            NullaryOp::Li      => write!(f, "LI"),
+            NullaryOp::Lc      => write!(f, "LC"),
+            NullaryOp::Si      => write!(f, "SI"),
+            NullaryOp::Sc      => write!(f, "SC"),
+            NullaryOp::Psh     => write!(f, "PSH"),
+            NullaryOp::Or      => write!(f, "OR"),
+            NullaryOp::Xor     => write!(f, "XOR"),
+            NullaryOp::And     => write!(f, "AND"),
+            NullaryOp::Eq      => write!(f, "EQ"),
+            NullaryOp::Ne      => write!(f, "NE"),
+            NullaryOp::Lt      => write!(f, "LT"),
+            NullaryOp::Gt      => write!(f, "GT"),
+            NullaryOp::Le      => write!(f, "LE"),
+            NullaryOp::Ge      => write!(f, "GE"),
+            NullaryOp::Add     => write!(f, "ADD"),
+            NullaryOp::Sub     => write!(f, "SUB"),
+            NullaryOp::Mul     => write!(f, "MUL"),
+            NullaryOp::Div     => write!(f, "DIV"),
+            NullaryOp::Mod     => write!(f, "MOD"),
+            NullaryOp::Pusharg => write!(f, "PUSHARG")
         }
     }
 }
 
 #[derive(Debug)]
 pub enum UnaryOp {
-    Imm,
     Rel,
+    Imm,
     Jmp,
+    Jsr,
     Bz,
     Bnz,
     Ent,
     Adj,
-    Jsr,
-
     Int
+}
+
+impl ToBytes for UnaryOp {
+    fn to_bytes(&self) -> Vec<Result<u8, &str>> {
+        let byte = match *self {
+            UnaryOp::Rel => 0x02,
+            UnaryOp::Imm => 0x05,
+            UnaryOp::Jmp => 0x06,
+            UnaryOp::Jsr => 0x07,
+            UnaryOp::Bz  => 0x08,
+            UnaryOp::Bnz => 0x09,
+            UnaryOp::Ent => 0x0a,
+            UnaryOp::Adj => 0x0b,
+            UnaryOp::Int => 0x22
+        };
+
+        vec![Ok(byte)]
+    }
 }
 
 impl fmt::Display for UnaryOp {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            &UnaryOp::Imm => write!(f, "IMM"),
-
-            &UnaryOp::Rel => write!(f, "REL"),
-            &UnaryOp::Jmp => write!(f, "JMP"),
-            &UnaryOp::Bz => write!(f, "BZ"),
-            &UnaryOp::Bnz => write!(f, "BNZ"),
-            &UnaryOp::Ent => write!(f, "ENT"),
-            &UnaryOp::Adj => write!(f, "ADJ"),
-            &UnaryOp::Jsr => write!(f, "JSR"),
-            &UnaryOp::Int => write!(f, "INT")
+        match *self {
+            UnaryOp::Rel => write!(f, "REL"),
+            UnaryOp::Imm => write!(f, "IMM"),
+            UnaryOp::Jmp => write!(f, "JMP"),
+            UnaryOp::Jsr => write!(f, "JSR"),
+            UnaryOp::Bz => write!(f, "BZ"),
+            UnaryOp::Bnz => write!(f, "BNZ"),
+            UnaryOp::Ent => write!(f, "ENT"),
+            UnaryOp::Adj => write!(f, "ADJ"),
+            UnaryOp::Int => write!(f, "INT")
         }
     }
 }
@@ -142,6 +189,15 @@ impl fmt::Display for UnaryOp {
 pub enum Opcode<'a> {
     Nullary(NullaryOp),
     Unary(UnaryOp, Word<'a>)
+}
+
+impl<'a> ToBytes for Opcode<'a> {
+    fn to_bytes(&self) -> Vec<Result<u8, &str>> {
+        match *self {
+            Opcode::Nullary(ref n) => n.to_bytes(),
+            Opcode::Unary(ref u, _) => u.to_bytes(),
+        }
+    }
 }
 
 impl<'a> fmt::Display for Opcode<'a> {
@@ -160,12 +216,12 @@ pub enum Instruction<'a> {
 }
 
 impl<'a> ToBytes for Instruction<'a> {
-  fn to_bytes(&self) -> Vec<Result<u8, &str>> {
-    match *self {
-        Instruction::Directive(ref d) => d.to_bytes(),
-        Instruction::Opcode(ref o) => vec![Ok(0x37)],
+    fn to_bytes(&self) -> Vec<Result<u8, &str>> {
+        match *self {
+            Instruction::Directive(ref d) => d.to_bytes(),
+            Instruction::Opcode(ref o) => o.to_bytes(),
+        }
     }
-  }
 }
 
 impl<'a> fmt::Display for Instruction<'a> {
@@ -184,9 +240,9 @@ pub struct Entry<'a> {
 }
 
 impl<'a> ToBytes for Entry<'a> {
-  fn to_bytes(&self) -> Vec<Result<u8, &str>> {
-    return self.entry.to_bytes();
-  }
+    fn to_bytes(&self) -> Vec<Result<u8, &str>> {
+        return self.entry.to_bytes();
+    }
 }
 
 impl<'a> fmt::Display for Entry<'a> {
