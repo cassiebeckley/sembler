@@ -1,5 +1,5 @@
 [package]
-name = "stockembler"
+name = "sembler"
 version = "0.1.0"
 authors = ["David Beckley <beckl.ds@gmail.com>"]
 

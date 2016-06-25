@@ -20,9 +20,7 @@ enum Word<'a> {
 }
 
 #[derive(Debug)]
-enum Opcode<'a> {
-    Imm(Word<'a>),
-    Rel(Word<'a>),
+enum NullaryOp {
     Psh,
     Pusharg,
     Li,
@@ -31,12 +29,6 @@ enum Opcode<'a> {
     Sc,
     Swap,
     Pop,
-    Jmp(Word<'a>),
-    Bz(Word<'a>),
-    Bnz(Word<'a>),
-    Ent(Word<'a>),
-    Adj(Word<'a>),
-    Jsr(Word<'a>),
     Ret,
 
     Eq,
@@ -52,9 +44,27 @@ enum Opcode<'a> {
     Mod,
     And,
     Or,
-    Xor,
+    Xor
+}
 
-    Int(Word<'a>)
+#[derive(Debug)]
+enum UnaryOp {
+    Imm,
+    Rel,
+    Jmp,
+    Bz,
+    Bnz,
+    Ent,
+    Adj,
+    Jsr,
+
+    Int
+}
+
+#[derive(Debug)]
+enum Opcode<'a> {
+    Nullary(NullaryOp),
+    Unary(UnaryOp, Word<'a>)
 }
 
 #[derive(Debug)]
@@ -107,49 +117,72 @@ named!(hex<&[u8], u32>, preceded!(tag!("0x"), hex_u32));
 
 named!(word<&[u8], Word>, alt!(map!(hex, Word::Literal) | map!(map_res!(alpha, str::from_utf8), Word::Label)));
 
-named!(opcode<&[u8], Opcode>,
+named!(nullary_operation<&[u8], Opcode>,
+    map!(
+        alt!(
+            value!(NullaryOp::Psh,     tag!("PSH"))     |
+            value!(NullaryOp::Pusharg, tag!("PUSHARG")) |
+            value!(NullaryOp::Li,      tag!("LI"))      |
+            value!(NullaryOp::Lc,      tag!("LC"))      |
+            value!(NullaryOp::Si,      tag!("SI"))      |
+            value!(NullaryOp::Sc,      tag!("SC"))      |
+            value!(NullaryOp::Swap,    tag!("SWAP"))    |
+            value!(NullaryOp::Pop,     tag!("POP"))     |
+            value!(NullaryOp::Ret,     tag!("RET"))     |
+            value!(NullaryOp::Eq,      tag!("EQ"))      |
+            value!(NullaryOp::Ne,      tag!("NE"))      |
+            value!(NullaryOp::Lt,      tag!("LT"))      |
+            value!(NullaryOp::Gt,      tag!("GT"))      |
+            value!(NullaryOp::Le,      tag!("LE"))      |
+            value!(NullaryOp::Ge,      tag!("GE"))      |
+            value!(NullaryOp::Add,     tag!("ADD"))     |
+            value!(NullaryOp::Sub,     tag!("SUB"))     |
+            value!(NullaryOp::Mul,     tag!("MUL"))     |
+            value!(NullaryOp::Div,     tag!("DIV"))     |
+            value!(NullaryOp::Mod,     tag!("MOD"))     |
+            value!(NullaryOp::And,     tag!("AND"))     |
+            value!(NullaryOp::Or,      tag!("OR"))      |
+            value!(NullaryOp::Xor,     tag!("XOR"))
+        ),
+        Opcode::Nullary
+    )
+);
+
+named!(unary_opcode<&[u8], UnaryOp>,
     alt!(
-        map!(preceded!(tag!("IMM"), preceded!(whitespace, word)), Opcode::Imm) |
-        map!(preceded!(tag!("REL"), preceded!(whitespace, word)), Opcode::Rel) |
-        value!(Opcode::Psh, tag!("PSH")) |
-        value!(Opcode::Pusharg, tag!("PUSHARG")) |
-        value!(Opcode::Li, tag!("LI")) |
-        value!(Opcode::Lc, tag!("LC")) |
-        value!(Opcode::Si, tag!("SI")) |
-        value!(Opcode::Sc, tag!("SC")) |
-        value!(Opcode::Swap, tag!("SWAP")) |
-        value!(Opcode::Pop, tag!("POP")) |
-        map!(preceded!(tag!("JMP"), preceded!(whitespace, word)), Opcode::Jmp) |
-        map!(preceded!(tag!("BZ"), preceded!(whitespace, word)), Opcode::Bz) |
-        map!(preceded!(tag!("BNZ"), preceded!(whitespace, word)), Opcode::Bnz) |
-        map!(preceded!(tag!("ENT"), preceded!(whitespace, word)), Opcode::Ent) |
-        map!(preceded!(tag!("ADJ"), preceded!(whitespace, word)), Opcode::Adj) |
-        map!(preceded!(tag!("JSR"), preceded!(whitespace, word)), Opcode::Jsr) |
-        value!(Opcode::Ret, tag!("RET")) |
+        value!(UnaryOp::Imm, tag!("IMM")) |
+        value!(UnaryOp::Rel, tag!("REL")) |
+        value!(UnaryOp::Jmp, tag!("JMP")) |
+        value!(UnaryOp::Bz,  tag!("BZ"))  |
+        value!(UnaryOp::Bnz, tag!("BNZ")) |
+        value!(UnaryOp::Ent, tag!("ENT")) |
+        value!(UnaryOp::Adj, tag!("ADJ")) |
+        value!(UnaryOp::Jsr, tag!("JSR")) |
+        value!(UnaryOp::Int, tag!("INT"))
+    )
+);
 
-        value!(Opcode::Eq, tag!("EQ")) |
-        value!(Opcode::Ne, tag!("NE")) |
-        value!(Opcode::Lt, tag!("LT")) |
-        value!(Opcode::Gt, tag!("GT")) |
-        value!(Opcode::Le, tag!("LE")) |
-        value!(Opcode::Ge, tag!("GE")) |
-        value!(Opcode::Add, tag!("ADD")) |
-        value!(Opcode::Sub, tag!("SUB")) |
-        value!(Opcode::Mul, tag!("MUL")) |
-        value!(Opcode::Div, tag!("DIV")) |
-        value!(Opcode::Mod, tag!("MOD")) |
-        value!(Opcode::And, tag!("AND")) |
-        value!(Opcode::Or, tag!("OR")) |
-        value!(Opcode::Xor, tag!("XOR")) |
+named!(unary_operation<&[u8], Opcode>,
+    chain!(
+        uu: unary_opcode ~
+        whitespace       ~
+        ww: word         ,
 
-        map!(preceded!(tag!("INT"), preceded!(whitespace, word)), Opcode::Int)
+        ||{Opcode::Unary(uu, ww)}
+    )
+);
+
+named!(operation<&[u8], Opcode>,
+    alt!(
+        nullary_operation |
+        unary_operation
     )
 );
 
 named!(instruction<&[u8], Instruction>,
     alt!(
         map!(directive, Instruction::Directive) |
-        map!(opcode, Instruction::Opcode)
+        map!(operation, Instruction::Opcode)
     )
 );
 
@@ -206,7 +239,7 @@ named!(parser<&[u8], Program>,
 
 fn main() {
     if env::args().count() < 2 {
-        panic!("Usage: stockembler <source_file>");
+        panic!("Usage: sembler <source_file>");
     }
 
     let file = env::args().nth(1).unwrap();
