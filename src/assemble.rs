@@ -22,6 +22,25 @@ fn first_pass<'a>(section: &'a Vec<Entry>, symbols: &mut HashMap<&'a str, u32>) 
     entities
 }
 
+fn second_pass(entities: &Vec<Result<u8, &str>>, symbols: &HashMap<&str, u32>) -> Vec<u8> {
+    let mut code = vec![];
+
+    for entity in entities {
+        match *entity {
+            Ok(b) => code.push(b),
+            Err(label) => {
+                let address = symbols.get(label).unwrap();
+                code.push((address >> 24) as u8);
+                code.push((address >> 16) as u8);
+                code.push((address >> 8) as u8);
+                code.push(address.clone() as u8);
+            }
+        }
+    }
+
+    code
+}
+
 fn print_transitional(code: &Vec<Result<u8, &str>>) {
     println!("Printing... something");
     for entity in code {
@@ -36,14 +55,27 @@ fn print_transitional(code: &Vec<Result<u8, &str>>) {
     }
 }
 
+fn print_code(code: &Vec<u8>) {
+    println!("Printing... something");
+    for byte in code {
+        println!("{:x}", byte);
+    }
+}
+
 pub fn assemble(ast: &Program) -> Vec<u8> {
     let mut symbols = HashMap::new();
 
     let bss = first_pass(&ast.bss, &mut symbols);
     let raw = first_pass(&ast.raw, &mut symbols);
 
-    print_transitional(&bss);
-    print_transitional(&raw);
+    // print_transitional(&bss);
+    // print_transitional(&raw);
+
+    let bss = second_pass(&bss, &symbols);
+    let raw = second_pass(&raw, &symbols);
+
+    print_code(&bss);
+    print_code(&raw);
 
     println!("\nSymbols:\n{:?}", symbols);
 
