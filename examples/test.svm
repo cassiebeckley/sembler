@@ -9,12 +9,10 @@ raw {
     ENT 0x0
     REL 0x0
     LI
-    PSH
-    IMM 0x0
-    EQ
-    BZ 0x1d
+    BNZ recurse  ; note that BZ is absolute, rather than relative like the docs say
     IMM 0x1
     RET
+  recurse:
     REL 0x0
     LI
     PSH
@@ -32,7 +30,7 @@ raw {
 
   main:
     ENT 0x0
-    IMM message
+    IMM error
     PUSHARG
     INT 0x2      ; printstring()
     ADJ 0x1
