@@ -22,14 +22,14 @@ fn first_pass<'a>(section: &'a Vec<Entry>, symbols: &mut HashMap<&'a str, u32>) 
     entities
 }
 
-fn second_pass(entities: &Vec<Result<u8, &str>>, symbols: &HashMap<&str, u32>) -> Vec<u8> {
+fn second_pass(entities: &Vec<Result<u8, &str>>, symbols: &HashMap<&str, u32>) -> Result<Vec<u8>, String> {
     let mut code = vec![];
 
     for entity in entities {
         match *entity {
             Ok(b) => code.push(b),
             Err(label) => {
-                let address = symbols.get(label).unwrap();
+                let address = try!(symbols.get(label).ok_or("Undefined symbol ".to_string() + label));
                 code.push((address >> 24) as u8);
                 code.push((address >> 16) as u8);
                 code.push((address >> 8) as u8);
@@ -38,7 +38,7 @@ fn second_pass(entities: &Vec<Result<u8, &str>>, symbols: &HashMap<&str, u32>) -
         }
     }
 
-    code
+    Ok(code)
 }
 
 fn print_transitional(code: &Vec<Result<u8, &str>>) {
@@ -71,8 +71,8 @@ pub fn assemble(ast: &Program) -> Vec<u8> {
     // print_transitional(&bss);
     // print_transitional(&raw);
 
-    let bss = second_pass(&bss, &symbols);
-    let raw = second_pass(&raw, &symbols);
+    let bss = second_pass(&bss, &symbols).unwrap();
+    let raw = second_pass(&raw, &symbols).unwrap();
 
     print_code(&bss);
     print_code(&raw);
