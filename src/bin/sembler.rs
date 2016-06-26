@@ -30,7 +30,10 @@ fn main() {
     // TODO: take this as arg
     let entry_point = "main";
 
-    let ast = parser::parse_svm(&source).unwrap();
+    let ast = match parser::parse_svm(&source) {
+        Ok(ast) => ast,
+        Err(e) => panic!("{}", e)
+    };
     let blob = assemble::assemble(&ast, entry_point);
 
     println!("{}", blob.to_json().pretty());

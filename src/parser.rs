@@ -169,10 +169,11 @@ named!(parser<&[u8], Program>,
     )
 );
 
-pub fn parse_svm(source: &[u8]) -> Option<Program> {
+pub fn parse_svm(source: &[u8]) -> Result<Program, Err<&[u8]>> {
   match parser(source) {
-    IResult::Done(_, program) => Some(program),
-    _ => None
+    IResult::Done(_, program) => Ok(program),
+    IResult::Error(e) => Err(e),
+    _ => Err(Err::Code(ErrorKind::Alpha))
   }
 }
 
