@@ -1,5 +1,8 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, BTreeMap};
 use ast::*;
+
+use rustc_serialize::base64::{self, ToBase64};
+use rustc_serialize::json::{ToJson, Json};
 
 fn first_pass<'a>(section: &'a Vec<Entry>, symbols: &mut HashMap<&'a str, u32>) -> Vec<Result<u8, &'a str>> {
     let mut entities = vec![];
@@ -41,43 +44,41 @@ fn second_pass(entities: &Vec<Result<u8, &str>>, symbols: &HashMap<&str, u32>) -
     Ok(code)
 }
 
-fn print_transitional(code: &Vec<Result<u8, &str>>) {
-    println!("Printing... something");
-    for entity in code {
-        match *entity {
-            Ok(byte) => {
-                println!("{:x}", byte);
-            },
-            Err(label) => {
-                println!("[{}]", label);
-            }
-        }
+// don't perturb this
+pub struct Blob {
+    pub bss: Vec<u8>,
+    pub raw: Vec<u8>,
+    pub ep: u32
+}
+
+impl ToJson for Blob {
+    fn to_json(&self) -> Json {
+        let mut blob = BTreeMap::new();
+
+        blob.insert("ok".to_string(), Json::Boolean(true));
+
+        blob.insert("bss".to_string(), Json::String(self.bss.to_base64(base64::STANDARD)));
+        blob.insert("raw".to_string(), Json::String(self.raw.to_base64(base64::STANDARD)));
+        blob.insert("ep".to_string(), Json::U64(self.ep as u64));
+
+        Json::Object(blob)
     }
 }
 
-fn print_code(code: &Vec<u8>) {
-    println!("Printing... something");
-    for byte in code {
-        println!("{:x}", byte);
-    }
-}
-
-pub fn assemble(ast: &Program) -> Vec<u8> {
+pub fn assemble(ast: &Program, entry_point: &str) -> Blob {
     let mut symbols = HashMap::new();
 
     let bss = first_pass(&ast.bss, &mut symbols);
     let raw = first_pass(&ast.raw, &mut symbols);
 
-    // print_transitional(&bss);
-    // print_transitional(&raw);
-
     let bss = second_pass(&bss, &symbols).unwrap();
     let raw = second_pass(&raw, &symbols).unwrap();
 
-    print_code(&bss);
-    print_code(&raw);
+    let ep = symbols.get(entry_point).expect(&format!("Could not find entry point \"{}\"", entry_point));
 
-    println!("\nSymbols:\n{:?}", symbols);
-
-    vec![]
+    Blob {
+        bss: bss,
+        raw: raw,
+        ep: ep.clone()
+    }
 }
