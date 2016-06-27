@@ -32,7 +32,7 @@ fn main() {
 
     let ast = match parser::parse_svm(&source) {
         Ok(ast) => ast,
-        Err(e) => panic!("{}", e)
+        Err(e) => panic!("{:?}", e)
     };
     let blob = assemble::assemble(&ast, entry_point);
 

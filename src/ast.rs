@@ -174,7 +174,7 @@ impl fmt::Display for UnaryOp {
             UnaryOp::Imm => write!(f, "IMM"),
             UnaryOp::Jmp => write!(f, "JMP"),
             UnaryOp::Jsr => write!(f, "JSR"),
-            UnaryOp::Bz => write!(f, "BZ"),
+            UnaryOp::Bz  => write!(f, "BZ"),
             UnaryOp::Bnz => write!(f, "BNZ"),
             UnaryOp::Ent => write!(f, "ENT"),
             UnaryOp::Adj => write!(f, "ADJ"),

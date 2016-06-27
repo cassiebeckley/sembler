@@ -159,6 +159,7 @@ named!(raw< &[u8], Vec<Entry> >,
 
 named!(parser<&[u8], Program>,
     chain!(
+        whitespace ~
         b: bss     ~
         whitespace ~
         r: raw     ~
@@ -169,11 +170,23 @@ named!(parser<&[u8], Program>,
     )
 );
 
-pub fn parse_svm(source: &[u8]) -> Result<Program, Err<&[u8]>> {
+#[derive(Debug)]
+pub struct Error {
+    position: usize
+}
+
+fn get_position(length: usize, err: Err<&[u8]>) -> usize {
+    match err {
+        Err::Position(_, p) => length - p.len(),
+        _ => 0
+    }
+}
+
+pub fn parse_svm(source: &[u8]) -> Result<Program, Error> {
   match parser(source) {
     IResult::Done(_, program) => Ok(program),
-    IResult::Error(e) => Err(e),
-    _ => Err(Err::Code(ErrorKind::Alpha))
+    IResult::Error(e) => Err(Error {position: get_position(source.len(), e)}),
+    _ => Err(Error {position: 0})
   }
 }
 

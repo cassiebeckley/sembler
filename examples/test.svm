@@ -7,7 +7,7 @@ bss {
 raw {
   factorial:
     ENT 0x0
-    REL 0x0
+    REL 0
     LI
     BNZ recurse  ; note that BZ is absolute, rather than relative like the docs say
     IMM 0x1
