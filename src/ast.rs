@@ -6,7 +6,10 @@ pub trait ToBytes {
 
 #[derive(Debug)]
 pub enum Directive<'a> {
-    Asciz(&'a str)
+    Asciz(&'a str),
+    Ascii(&'a str),
+    Db(u8),
+    Dw(u32)
 }
 
 impl<'a> ToBytes for Directive<'a> {
@@ -21,7 +24,18 @@ impl<'a> ToBytes for Directive<'a> {
 
                 bytes.push(Ok(0));
                 bytes
-            }
+            },
+            Directive::Ascii(s) => s.as_bytes()
+                                    .iter()
+                                    .map(|b| Ok(b.clone()))
+                                    .collect(),
+            Directive::Db(byte) => vec![Ok(byte)],
+            Directive::Dw(word) => vec![
+                Ok((word >> 24) as u8),
+                Ok((word >> 16) as u8),
+                Ok((word >> 8) as u8),
+                Ok(word as u8)
+            ],
         }
     }
 }
@@ -29,7 +43,10 @@ impl<'a> ToBytes for Directive<'a> {
 impl<'a> fmt::Display for Directive<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            &Directive::Asciz(string) => write!(f, ".asciz \"{}\"", string)
+            &Directive::Asciz(string) => write!(f, ".asciz \"{}\"", string),
+            &Directive::Ascii(string) => write!(f, ".ascii \"{}\"", string),
+            &Directive::Db(byte)      => write!(f, ".db \"0x{:x}\"", byte),
+            &Directive::Dw(word)      => write!(f, ".dw \"0x{:x}\"", word)
         }
     }
 }

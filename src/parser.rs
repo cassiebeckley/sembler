@@ -41,13 +41,52 @@ named!(label<&[u8], &str>,
 
 named!(string<&[u8], &str>, delimited!(char!('"'), map_res!(is_not!("\""), str::from_utf8), char!('"')));
 
-named!(directive<&[u8], Directive>,
+named!(asciz<&[u8], Directive>,
     chain!(
         tag!(".asciz") ~
         whitespace     ~
         s: string      ,
 
         ||{Directive::Asciz(s)}
+    )
+);
+
+named!(ascii<&[u8], Directive>,
+    chain!(
+        tag!(".ascii") ~
+        whitespace     ~
+        s: string      ,
+
+        ||{Directive::Ascii(s)}
+    )
+);
+
+named!(db<&[u8], Directive>,
+    chain!(
+        tag!(".db") ~
+        whitespace  ~
+        b: literal  ,
+
+        ||{Directive::Db(b as u8)}
+    )
+);
+
+named!(dw<&[u8], Directive>,
+    chain!(
+        tag!(".dw") ~
+        whitespace  ~
+        w: literal  ,
+
+        ||{Directive::Dw(w)}
+    )
+);
+
+named!(directive<&[u8], Directive>,
+    alt!(
+        asciz |
+        ascii |
+        db    |
+        dw
     )
 );
 
@@ -65,17 +104,17 @@ fn handle_negation(negative: Option<char>, value: u32) -> u32 {
     }
 }
 
-named!(literal<&[u8], Word>,
+named!(literal<&[u8], u32>,
     chain!(
         nn: char!('-') ?        ~
         whitespace              ~
         vv: alt!(hex | dec_u32) ,
 
-        ||{Word::Literal(handle_negation(nn, vv))}
+        ||{handle_negation(nn, vv)}
     )
 );
 
-named!(word<&[u8], Word>, alt!(literal | map!(identifier, Word::Label)));
+named!(word<&[u8], Word>, alt!(map!(literal, Word::Literal) | map!(identifier, Word::Label)));
 
 named!(nullary_operation<&[u8], Opcode>,
     map!(

@@ -50,7 +50,12 @@ IMM message
 
 When an argument is a label, sembler will replace the label with the address that label represents. For a list of all instructions, refer to the Stockfighter Virtual Machine documentation.
 
-Currently, only one directive is implemented: `.asciz`. This directive takes a string as an argument, and instructs the assembler to write that string to memory followed by a zero byte. For example, `.asciz "foo"` will emit the bytes `66 6F 6F 00`. This type of string is also known as a C-style string or a null-terminated string.
+The following directives are implemented:
+
+* `.asciz`: This directive takes a string as an argument, and instructs the assembler to write that string to memory followed by a zero byte. For example, `.asciz "foo"` will emit the bytes `66 6F 6F 00`. This type of string is also known as a C-style string or a null-terminated string.
+* `.ascii`: Same as `.asciz`, but without a null byte at the end.
+* `.db`: This directive takes a single byte as an argument, which it emits.
+* `.dw`: This directive takes a word (32-bit integer), and emits it as four bytes, big-endian. For example, `.dw 0x12345678` will emit the bytes `12 34 56 78`.
 
 ## Example
 
