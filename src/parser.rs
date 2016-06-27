@@ -22,10 +22,18 @@ named!(whitespace < Vec<()> >,
     )
 );
 
+fn is_id_char(chr: u8) -> bool {
+    is_alphabetic(chr) || chr == b'_'
+}
+
+named!(identifier<&[u8], &str>,
+    map_res!(take_while1!(is_id_char), str::from_utf8)
+);
+
 named!(label<&[u8], &str>,
     chain!(
-        val: map_res!(alpha, str::from_utf8) ~
-        char!(':')                           ,
+        val: identifier ~
+        char!(':')      ,
 
         ||{val}
     )
@@ -51,7 +59,7 @@ named!(dec_u32<&[u8], u32>, map!(digit, |digits: &[u8]| {
 
 named!(literal<&[u8], Word>, alt!(map!(hex, Word::Literal) | map!(dec_u32, Word::Literal)));
 
-named!(word<&[u8], Word>, alt!(literal | map!(map_res!(alpha, str::from_utf8), Word::Label)));
+named!(word<&[u8], Word>, alt!(literal | map!(identifier, Word::Label)));
 
 named!(nullary_operation<&[u8], Opcode>,
     map!(
@@ -175,22 +183,32 @@ named!(parser<&[u8], Program>,
 );
 
 #[derive(Debug)]
-pub struct Error {
-    position: usize
+pub struct Error<'a> {
+    position: usize,
+    context: Option<&'a str>
 }
 
-fn get_position(length: usize, err: Err<&[u8]>) -> usize {
+fn get_error(length: usize, err: Err<&[u8]>) -> Error {
     match err {
-        Err::Position(_, p) => length - p.len(),
-        _ => 0
+        Err::Position(_, p) => Error {
+            position: length - p.len(),
+            context: str::from_utf8(&p[0..20]).ok()
+        },
+        _ => Error {
+            position: 0,
+            context: None
+        }
     }
 }
 
 pub fn parse_svm(source: &[u8]) -> Result<Program, Error> {
   match parser(source) {
     IResult::Done(_, program) => Ok(program),
-    IResult::Error(e) => Err(Error {position: get_position(source.len(), e)}),
-    _ => Err(Error {position: 0})
+    IResult::Error(e) => Err(get_error(source.len(), e)),
+    _ => Err(Error {
+        position: 0,
+        context: None
+    })
   }
 }
 

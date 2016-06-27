@@ -5,21 +5,21 @@ bss {
 }
 
 raw {
-  factorial:
+factorial_recursive:
     ENT 0x0
-    REL 0        ; both hex and decimal numbers supported
+    REL 0x0
     LI
     BNZ recurse
     IMM 0x1
     RET
-  recurse:
+recurse:
     REL 0x0
     LI
     PSH
     IMM 0x1
     SUB
     PUSHARG
-    JSR factorial
+    JSR factorial_recursive
     ADJ 0x1
     PSH
     REL 0x0
@@ -28,7 +28,48 @@ raw {
     RET
     RET
 
-  main:
+factorial_iterative:
+    ENT 1
+    REL -12
+    PSH
+    IMM 1
+    SI
+loop:
+    REL 0
+    LI
+    PSH
+    IMM 0
+    GT
+    BZ finished
+    REL -12
+    PSH
+    REL -12
+    LI
+    PSH
+    REL 0
+    LI
+    MUL
+    SI
+    REL 0
+    PSH
+    LI
+    SWAP
+    PSH
+    LI
+    PSH
+    IMM 1
+    SUB
+    SI
+    POP
+    JMP loop
+finished:
+    REL -12
+    LI
+    RET
+    RET
+
+
+main:
     ENT 0x0
     IMM error
     PUSHARG
@@ -36,7 +77,14 @@ raw {
     ADJ 0x1
     IMM 0x7
     PUSHARG
-    JSR factorial
+    JSR factorial_recursive
+    ADJ 0x1
+    PSH
+    INT 0x1      ; printint()
+    ADJ 0x1
+    IMM 0x8
+    PUSHARG
+    JSR factorial_iterative
     ADJ 0x1
     PSH
     INT 0x1      ; printint()
