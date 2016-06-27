@@ -4,13 +4,15 @@ use ast::*;
 use rustc_serialize::base64::{self, ToBase64};
 use rustc_serialize::json::{ToJson, Json};
 
-fn first_pass<'a>(section: &'a Vec<Entry>, symbols: &mut HashMap<&'a str, u32>) -> Vec<Result<u8, &'a str>> {
+fn first_pass<'a>(section: &'a Vec<Entry>, symbols: &mut HashMap<&'a str, u32>) -> Result<Vec<Result<u8, &'a str>>, String> {
     let mut entities = vec![];
     let mut byte_count = 0;
 
     for entry in section {
         if let Some(label) = entry.label {
-            symbols.insert(label, byte_count);
+            if let Some(_) = symbols.insert(label, byte_count) {
+                return Err(format!("Symbol \"{}\" defined multiple times", label));
+            }
         }
 
         for entity in entry.to_bytes() {
@@ -22,7 +24,7 @@ fn first_pass<'a>(section: &'a Vec<Entry>, symbols: &mut HashMap<&'a str, u32>) 
         }
     }
 
-    entities
+    Ok(entities)
 }
 
 fn second_pass(entities: &Vec<Result<u8, &str>>, symbols: &HashMap<&str, u32>) -> Result<Vec<u8>, String> {
@@ -32,7 +34,7 @@ fn second_pass(entities: &Vec<Result<u8, &str>>, symbols: &HashMap<&str, u32>) -
         match *entity {
             Ok(b) => code.push(b),
             Err(label) => {
-                let address = try!(symbols.get(label).ok_or("Undefined symbol ".to_string() + label));
+                let address = try!(symbols.get(label).ok_or(format!("Undefined symbol \"{}\"", label)));
                 code.push((address >> 24) as u8);
                 code.push((address >> 16) as u8);
                 code.push((address >> 8) as u8);
@@ -68,8 +70,8 @@ impl ToJson for Blob {
 pub fn assemble(ast: &Program, entry_point: &str) -> Blob {
     let mut symbols = HashMap::new();
 
-    let bss = first_pass(&ast.bss, &mut symbols);
-    let raw = first_pass(&ast.raw, &mut symbols);
+    let bss = first_pass(&ast.bss, &mut symbols).unwrap();
+    let raw = first_pass(&ast.raw, &mut symbols).unwrap();
 
     let bss = second_pass(&bss, &symbols).unwrap();
     let raw = second_pass(&raw, &symbols).unwrap();
