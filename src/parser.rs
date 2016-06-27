@@ -57,7 +57,23 @@ named!(dec_u32<&[u8], u32>, map!(digit, |digits: &[u8]| {
     str::from_utf8(digits).unwrap().parse::<u32>().unwrap()
 }));
 
-named!(literal<&[u8], Word>, alt!(map!(hex, Word::Literal) | map!(dec_u32, Word::Literal)));
+fn handle_negation(negative: Option<char>, value: u32) -> u32 {
+    if let Some(_) = negative {
+        -(value as i32) as u32
+    } else {
+        value
+    }
+}
+
+named!(literal<&[u8], Word>,
+    chain!(
+        nn: char!('-') ?        ~
+        whitespace              ~
+        vv: alt!(hex | dec_u32) ,
+
+        ||{Word::Literal(handle_negation(nn, vv))}
+    )
+);
 
 named!(word<&[u8], Word>, alt!(literal | map!(identifier, Word::Label)));
 
