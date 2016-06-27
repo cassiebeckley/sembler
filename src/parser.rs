@@ -16,9 +16,7 @@ named!(comment,
 named!(whitespace < Vec<()> >,
     many0!(
         alt!(
-            value!((), char!(' '))            |
-            value!((), char!('\n'))           |
-            value!((), char!('\r'))           |
+            value!((), multispace) |
             value!((), comment)
         )
     )
@@ -47,7 +45,13 @@ named!(directive<&[u8], Directive>,
 
 named!(hex<&[u8], u32>, preceded!(tag!("0x"), hex_u32));
 
-named!(word<&[u8], Word>, alt!(map!(hex, Word::Literal) | map!(map_res!(alpha, str::from_utf8), Word::Label)));
+named!(dec_u32<&[u8], u32>, map!(digit, |digits: &[u8]| {
+    str::from_utf8(digits).unwrap().parse::<u32>().unwrap()
+}));
+
+named!(literal<&[u8], Word>, alt!(map!(hex, Word::Literal) | map!(dec_u32, Word::Literal)));
+
+named!(word<&[u8], Word>, alt!(literal | map!(map_res!(alpha, str::from_utf8), Word::Label)));
 
 named!(nullary_operation<&[u8], Opcode>,
     map!(

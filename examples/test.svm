@@ -7,9 +7,9 @@ bss {
 raw {
   factorial:
     ENT 0x0
-    REL 0
+    REL 0        ; both hex and decimal numbers supported
     LI
-    BNZ recurse  ; note that BZ is absolute, rather than relative like the docs say
+    BNZ recurse
     IMM 0x1
     RET
   recurse:
