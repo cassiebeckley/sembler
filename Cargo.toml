@@ -9,3 +9,4 @@ name = "sembler"
 [dependencies]
 nom = "1.2.3"
 rustc-serialize = "0.3"
+clap = "2.6.0"
