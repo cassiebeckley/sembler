@@ -127,11 +127,11 @@ You can find more examples in the `examples` directory.
 
 ## Building
 
-Sembler is written in Rust. Since there currently are no prebuilt binaries, you'll have to build it yourself. Make sure Rust is installed (go to https://www.rust-lang.org/ or use your preferred package manager if it is not), clone this project, and run `cargo build --release` (use `cargo build` to build a debug if you want to contribute). You'll be able to find the `sembler` executable in the `target/release` directory.
+Sembler is written in Rust. Since there currently are no prebuilt binaries, you'll have to build it yourself. Make sure Rust is installed (if it isn't, get it from https://www.rust-lang.org/ or use your preferred package manager), clone this project, and run `cargo build --release` (use `cargo build` to build a debug if you want to contribute). You'll be able to find the `sembler` executable in the `target/release` directory.
 
 ## Unimplemented features
 
-This is a wishlist of features that I'd like or am planning to add. If you would like to implement any of these, please create an issue for the feature and mention that you're implementing it yourself.
+This is a wishlist of features that I want to add. If you would like to implement any of these, please create an issue for the feature and mention that you're implementing it yourself.
 
 - [ ] Useful error handling and messages. Currently, there are a lot of panics in the code, and error messages often don't specify what line of the input caused them.
 - [ ] Fancier expressions. Instruction arguments are either literals or labels at the moment. It would be nice to allow arithmetic that is evaluated to a constant at assembly time. For example, 'IMM 3 * 60 * 60' or 'IMM some_record + 5'.
