@@ -23,7 +23,7 @@ named!(whitespace < Vec<()> >,
 );
 
 fn is_id_char(chr: u8) -> bool {
-    is_alphabetic(chr) || chr == b'_'
+    is_alphanumeric(chr) || chr == b'_'
 }
 
 named!(identifier<&[u8], &str>,
@@ -127,6 +127,7 @@ named!(nullary_operation<&[u8], Opcode>,
             value!(NullaryOp::Sc,      tag!("SC"))      |
             value!(NullaryOp::Swap,    tag!("SWAP"))    |
             value!(NullaryOp::Pop,     tag!("POP"))     |
+            value!(NullaryOp::Retp,    tag!("RETP"))    |
             value!(NullaryOp::Ret,     tag!("RET"))     |
             value!(NullaryOp::Eq,      tag!("EQ"))      |
             value!(NullaryOp::Ne,      tag!("NE"))      |
@@ -149,14 +150,15 @@ named!(nullary_operation<&[u8], Opcode>,
 
 named!(unary_opcode<&[u8], UnaryOp>,
     alt!(
-        value!(UnaryOp::Imm, tag!("IMM")) |
-        value!(UnaryOp::Rel, tag!("REL")) |
-        value!(UnaryOp::Jmp, tag!("JMP")) |
-        value!(UnaryOp::Bz,  tag!("BZ"))  |
-        value!(UnaryOp::Bnz, tag!("BNZ")) |
-        value!(UnaryOp::Ent, tag!("ENT")) |
-        value!(UnaryOp::Adj, tag!("ADJ")) |
-        value!(UnaryOp::Jsr, tag!("JSR")) |
+        value!(UnaryOp::Imm, tag!("IMM"))   |
+        value!(UnaryOp::Rel, tag!("REL"))   |
+        value!(UnaryOp::Jmp, tag!("JMP"))   |
+        value!(UnaryOp::Bz,  tag!("BZ"))    |
+        value!(UnaryOp::Bnz, tag!("BNZ"))   |
+        value!(UnaryOp::Ent, tag!("ENT"))   |
+        value!(UnaryOp::Adj, tag!("ADJ"))   |
+        value!(UnaryOp::Jsrp, tag!("JSRP")) |
+        value!(UnaryOp::Jsr, tag!("JSR"))   |
         value!(UnaryOp::Int, tag!("INT"))
     )
 );

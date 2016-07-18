@@ -71,6 +71,7 @@ pub enum NullaryOp {
     Swap,
     Pop,
     Ret,
+    Retp,
     Li,
     Lc,
     Si,
@@ -99,6 +100,7 @@ impl ToBytes for NullaryOp {
             NullaryOp::Swap    => 0x03,
             NullaryOp::Pop     => 0x04,
             NullaryOp::Ret     => 0x0c,
+            NullaryOp::Retp    => 0x38,
             NullaryOp::Li      => 0x0d,
             NullaryOp::Lc      => 0x0e,
             NullaryOp::Si      => 0x0f,
@@ -131,6 +133,7 @@ impl fmt::Display for NullaryOp {
             NullaryOp::Swap    => write!(f, "SWAP"),
             NullaryOp::Pop     => write!(f, "POP"),
             NullaryOp::Ret     => write!(f, "RET"),
+            NullaryOp::Retp    => write!(f, "RETP"),
             NullaryOp::Li      => write!(f, "LI"),
             NullaryOp::Lc      => write!(f, "LC"),
             NullaryOp::Si      => write!(f, "SI"),
@@ -161,6 +164,7 @@ pub enum UnaryOp {
     Imm,
     Jmp,
     Jsr,
+    Jsrp,
     Bz,
     Bnz,
     Ent,
@@ -171,15 +175,16 @@ pub enum UnaryOp {
 impl UnaryOp {
     fn to_byte(&self) -> u8 {
         match *self {
-            UnaryOp::Rel => 0x02,
-            UnaryOp::Imm => 0x05,
-            UnaryOp::Jmp => 0x06,
-            UnaryOp::Jsr => 0x07,
-            UnaryOp::Bz  => 0x08,
-            UnaryOp::Bnz => 0x09,
-            UnaryOp::Ent => 0x0a,
-            UnaryOp::Adj => 0x0b,
-            UnaryOp::Int => 0x22
+            UnaryOp::Rel  => 0x02,
+            UnaryOp::Imm  => 0x05,
+            UnaryOp::Jmp  => 0x06,
+            UnaryOp::Jsr  => 0x07,
+            UnaryOp::Jsrp => 0x37,
+            UnaryOp::Bz   => 0x08,
+            UnaryOp::Bnz  => 0x09,
+            UnaryOp::Ent  => 0x0a,
+            UnaryOp::Adj  => 0x0b,
+            UnaryOp::Int  => 0x22
         }
     }
 }
@@ -187,15 +192,16 @@ impl UnaryOp {
 impl fmt::Display for UnaryOp {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            UnaryOp::Rel => write!(f, "REL"),
-            UnaryOp::Imm => write!(f, "IMM"),
-            UnaryOp::Jmp => write!(f, "JMP"),
-            UnaryOp::Jsr => write!(f, "JSR"),
-            UnaryOp::Bz  => write!(f, "BZ"),
-            UnaryOp::Bnz => write!(f, "BNZ"),
-            UnaryOp::Ent => write!(f, "ENT"),
-            UnaryOp::Adj => write!(f, "ADJ"),
-            UnaryOp::Int => write!(f, "INT")
+            UnaryOp::Rel  => write!(f, "REL"),
+            UnaryOp::Imm  => write!(f, "IMM"),
+            UnaryOp::Jmp  => write!(f, "JMP"),
+            UnaryOp::Jsr  => write!(f, "JSR"),
+            UnaryOp::Jsrp => write!(f, "JSRP"),
+            UnaryOp::Bz   => write!(f, "BZ"),
+            UnaryOp::Bnz  => write!(f, "BNZ"),
+            UnaryOp::Ent  => write!(f, "ENT"),
+            UnaryOp::Adj  => write!(f, "ADJ"),
+            UnaryOp::Int  => write!(f, "INT")
         }
     }
 }
